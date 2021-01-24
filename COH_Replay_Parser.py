@@ -196,6 +196,8 @@ class COH_Replay_Parser:
 
 	def parseChunk(self, level):
 
+		print("LEVEL : {}".format(level))
+		
 		
 		print("dataIndex {} ".format(self.dataIndex))
 		chunkType = self.read_ASCIIString(stringLength= 8) # Reads FOLDFOLD, FOLDDATA, DATASDSC, DATAINFO etc
@@ -215,18 +217,14 @@ class COH_Replay_Parser:
 
 		chunkStart = self.dataIndex
 
-		#print("chunkStart {}".format(chunkStart))
-
 		#Here we start a recusive loop
 		if (chunkType.startswith("FOLD")):
-			while (self.dataIndex < (chunkStart + chunkLength)):
+			while (self.dataIndex < (chunkStart + chunkLength )):
 				self.parseChunk(level=level+1)
 
 		if (chunkType == "DATASDSC") and (int(chunkVersion) == 2004):
-			print("got here")
-			print("dataIndex {} ".format(self.dataIndex))
+
 			unknown = self.read_UnsignedLong4Bytes()
-			print("dataIndex {} ".format(self.dataIndex))
 			self.unknownDate = self.read_LengthString()
 			unknown = self.read_UnsignedLong4Bytes()
 			unknown = self.read_UnsignedLong4Bytes()
@@ -248,8 +246,41 @@ class COH_Replay_Parser:
 			unknown = self.read_UnsignedLong4Bytes()
 			unknown = self.read_UnsignedLong4Bytes() 
 
+			if(chunkType == "DATABASE") and (int(chunkVersion == 11)):
 
-		#self.seek(chunkStart + chunkLength, 0)
+				print("Got to DATABASE")
+
+				unknown = self.read_UnsignedLong4Bytes()
+				unknown = self.read_UnsignedLong4Bytes()
+				unknown = self.read_UnsignedLong4Bytes()
+				
+				variableCount = self.read_UnsignedLong4Bytes()
+				for i in range(variableCount):
+					variableValue = self.read_UnsignedLong4Bytes()
+					variableName = self.read_LengthString(4)[::-1]
+					self.otherVariables[variableName] = variableValue
+				
+				unknown = self.read_Bytes(1)
+				self.replayName = self.read_LengthString()
+				unknown = self.read_UnsignedLong4Bytes()
+				unknown = self.read_UnsignedLong4Bytes()
+				unknown = self.read_UnsignedLong4Bytes()
+				unknown = self.read_UnsignedLong4Bytes()
+				unknown = self.read_UnsignedLong4Bytes()
+
+			if(chunkType == "DATAINFO") and (chunkVersion == 6):
+
+				print("got to FATAINFO")
+				userName = self.read_LengthString()
+				self.read_UnsignedLong4Bytes()
+				self.read_UnsignedLong4Bytes()
+				faction = self.read_LengthString()
+				self.read_UnsignedLong4Bytes()
+				self.read_UnsignedLong4Bytes()
+				self.playerList.append((userName,faction))
+
+
+		self.seek(chunkStart + chunkLength + 28, 0)
 
 	def __str__(self) -> str:
 		output = "Data:\n"
@@ -270,6 +301,8 @@ class COH_Replay_Parser:
 		output += "mapHeight : {}\n".format(self.mapHeight)
 		output += "playerList : {}\n".format(self.playerList)
 		return output
+
+
 
 
 # Program Entry Starts here
