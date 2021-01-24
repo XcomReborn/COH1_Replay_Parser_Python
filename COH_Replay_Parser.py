@@ -63,7 +63,7 @@ class COH_Replay_Parser:
 		try:
 			if self.data:
 				stringLength = self.read_UnsignedLong4Bytes()
-				theString = self.read2byteString(stringLength =stringLength)
+				theString = self.read_2ByteString(stringLength =stringLength)
 				return theString
 		except Exception as e:
 			logging.error("Failed to read a string of specified length")
@@ -167,6 +167,7 @@ class COH_Replay_Parser:
 		for x in range(7):
 			print(self.read_UnsignedLong4Bytes())
 		#self.chunkyHeaderLength = self.read_UL4(fileHandle = fileHandle)
+		firstRelicChunkyAddress = self.dataIndex
 		relicChunky = self.read_ASCIIString(stringLength=12)
 		#print("relicChunky : {}".format(relicChunky))
 		unknown = self.read_UnsignedLong4Bytes()
@@ -176,10 +177,25 @@ class COH_Replay_Parser:
 		self.seek(-28,1) # sets file pointer back to start of relic chunky
 		self.seek(self.chunkyHeaderLength, 1) # seeks to begining of FOLDPOST
 
+		self.seek(firstRelicChunkyAddress, 0)
+		self.seek(96,1) # move pointer to the position of the second relic chunky
+		secondRelicChunkyAddress = self.dataIndex
+
+		relicChunky = self.read_ASCIIString(stringLength=12)
+
+		unknown = self.read_UnsignedLong4Bytes()
+		chunkyVersion = self.read_UnsignedLong4Bytes() # 3
+		unknown = self.read_UnsignedLong4Bytes()
+		chunkLength = self.read_UnsignedLong4Bytes()
+		
+		self.seek(secondRelicChunkyAddress, 0)
+		self.seek(chunkLength, 1) # seek to position of first viable chunk
+
 		self.parseChunk(0)
 
 
 	def parseChunk(self, level):
+
 		
 		print("dataIndex {} ".format(self.dataIndex))
 		chunkType = self.read_ASCIIString(stringLength= 8) # Reads FOLDFOLD, FOLDDATA, DATASDSC, DATAINFO etc
@@ -188,7 +204,9 @@ class COH_Replay_Parser:
 		chunkVersion = self.read_UnsignedLong4Bytes()
 		chunkLength = self.read_UnsignedLong4Bytes()
 		chunkNameLength = self.read_UnsignedLong4Bytes()
+		print("dataIndex {} ".format(self.dataIndex))
 		self.seek(8,1)
+		print("dataIndex {} ".format(self.dataIndex))
 		chunkName = ""
 		if chunkNameLength > 0:
 			chunkName = self.read_ASCIIString(stringLength=chunkNameLength)
@@ -197,38 +215,41 @@ class COH_Replay_Parser:
 
 		chunkStart = self.dataIndex
 
-		print("chunkStart {}".format(chunkStart))
+		#print("chunkStart {}".format(chunkStart))
 
 		#Here we start a recusive loop
 		if (chunkType.startswith("FOLD")):
 			while (self.dataIndex < (chunkStart + chunkLength)):
 				self.parseChunk(level=level+1)
-		else:
-			if (chunkType == "DATASDSC") and (chunkVersion == 2004):
-				unknown = self.read_UnsignedLong4Bytes()
-				self.unknownDate = self.read_LengthString()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				self.modName = self.read_LengthASCIIString() 
-				self.mapFileName = self.read_LengthASCIIString()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				self.mapName = self.read_LengthString()
-				unknown = self.read_UnsignedLong4Bytes()
-				self.mapDescription = self.read_LengthString()
-				unknown = self.read_UnsignedLong4Bytes()
-				self.mapWidth = self.read_UnsignedLong4Bytes()
-				self.mapHeight = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes() 
+
+		if (chunkType == "DATASDSC") and (int(chunkVersion) == 2004):
+			print("got here")
+			print("dataIndex {} ".format(self.dataIndex))
+			unknown = self.read_UnsignedLong4Bytes()
+			print("dataIndex {} ".format(self.dataIndex))
+			self.unknownDate = self.read_LengthString()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			self.modName = self.read_LengthASCIIString() 
+			self.mapFileName = self.read_LengthASCIIString()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			self.mapName = self.read_LengthString()
+			unknown = self.read_UnsignedLong4Bytes()
+			self.mapDescription = self.read_LengthString()
+			unknown = self.read_UnsignedLong4Bytes()
+			self.mapWidth = self.read_UnsignedLong4Bytes()
+			self.mapHeight = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes() 
 
 
-		self.seek(chunkStart + chunkLength, 0)
+		#self.seek(chunkStart + chunkLength, 0)
 
 	def __str__(self) -> str:
 		output = "Data:\n"
