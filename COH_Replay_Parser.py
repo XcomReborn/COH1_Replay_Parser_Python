@@ -219,6 +219,7 @@ class COH_Replay_Parser:
 
 		#Here we start a recusive loop
 		if (chunkType.startswith("FOLD")):
+			print("STATS WITH FOLD")
 			while (self.dataIndex < (chunkStart + chunkLength )):
 				self.parseChunk(level=level+1)
 
@@ -280,7 +281,7 @@ class COH_Replay_Parser:
 				self.playerList.append((userName,faction))
 
 
-		self.seek(chunkStart + chunkLength + 28, 0)
+		self.seek(chunkStart + chunkLength, 0)
 
 	def __str__(self) -> str:
 		output = "Data:\n"
