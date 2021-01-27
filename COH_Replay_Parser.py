@@ -22,7 +22,9 @@ class COH_Replay_Parser:
 		self.otherVariables = {}
 		self.modName = None
 		self.mapName = None
+		self.mapNameFull = None
 		self.mapDescription = None
+		self.mapDescriptionFull = None
 		self.mapFileName = None
 		self.mapWidth = None
 		self.mapHeight = None
@@ -162,14 +164,14 @@ class COH_Replay_Parser:
 		print("cohrec : {}".format(cohrec))
 
 		self.localDate = self.read_NULLTerminated_2ByteString()
-		self.seek(2, 1) #move extra two bytes to keep in 4 byte frame of reference at end of string
-		print("dataIndex : {}".format(self.dataIndex))
-		for x in range(7):
-			print(self.read_UnsignedLong4Bytes())
-		#self.chunkyHeaderLength = self.read_UL4(fileHandle = fileHandle)
+		#if (len(self.localDate)% 2 == 0):
+		#	self.seek(2, 1) #move extra two bytes to keep in 4 byte frame of reference at end of string
+		#print("dataIndex : {}".format(self.dataIndex))
+		self.seek(76,0)
+
 		firstRelicChunkyAddress = self.dataIndex
 		relicChunky = self.read_ASCIIString(stringLength=12)
-		#print("relicChunky : {}".format(relicChunky))
+		print("relicChunky : {}".format(relicChunky))
 		unknown = self.read_UnsignedLong4Bytes()
 		self.chunkyVersion = self.read_UnsignedLong4Bytes() # 3
 		unknown = self.read_UnsignedLong4Bytes()
@@ -192,6 +194,11 @@ class COH_Replay_Parser:
 		self.seek(chunkLength, 1) # seek to position of first viable chunk
 
 		self.parseChunk(0)
+		self.parseChunk(0)
+
+		#get mapname and mapdescription from ucs file if they exist there
+		self.mapNameFull = UCS().compareUCS(self.mapName)
+		self.mapDescriptionFull = UCS().compareUCS(self.mapDescription)
 
 
 	def parseChunk(self, level):
@@ -204,16 +211,21 @@ class COH_Replay_Parser:
 		print("chunkType : {}".format(chunkType))
 
 		chunkVersion = self.read_UnsignedLong4Bytes()
+		print("chunkVersion : {}".format(chunkVersion))
 		chunkLength = self.read_UnsignedLong4Bytes()
+		print("chunkLength : {}".format(chunkLength))
 		chunkNameLength = self.read_UnsignedLong4Bytes()
-		print("dataIndex {} ".format(self.dataIndex))
+		print("chunkNameLength : {}".format(chunkNameLength))
+		#print("dataIndex {} ".format(self.dataIndex))
 		self.seek(8,1)
-		print("dataIndex {} ".format(self.dataIndex))
+		#print("dataIndex {} ".format(self.dataIndex))
 		chunkName = ""
 		if chunkNameLength > 0:
 			chunkName = self.read_ASCIIString(stringLength=chunkNameLength)
+			print("chunkName : {}".format(chunkName))
+
 		
-		print("chunkVersion {}, chunkLength {}, chunkNameLength {}, chunkName {}".format(chunkVersion, chunkLength, chunkNameLength, chunkName))
+		#print("chunkVersion {}, chunkLength {}, chunkNameLength {}, chunkName {}".format(chunkVersion, chunkLength, chunkNameLength, chunkName))
 
 		chunkStart = self.dataIndex
 
@@ -238,7 +250,10 @@ class COH_Replay_Parser:
 			unknown = self.read_UnsignedLong4Bytes()
 			unknown = self.read_UnsignedLong4Bytes()
 			self.mapName = self.read_LengthString()
-			unknown = self.read_UnsignedLong4Bytes()
+			
+			value = self.read_UnsignedLong4Bytes() 
+			if value != 0: # test to see if data is replicated or not
+				unknown = self.read_2ByteString(value)
 			self.mapDescription = self.read_LengthString()
 			unknown = self.read_UnsignedLong4Bytes()
 			self.mapWidth = self.read_UnsignedLong4Bytes()
@@ -247,38 +262,38 @@ class COH_Replay_Parser:
 			unknown = self.read_UnsignedLong4Bytes()
 			unknown = self.read_UnsignedLong4Bytes() 
 
-			if(chunkType == "DATABASE") and (int(chunkVersion == 11)):
+		if(chunkType == "DATABASE") and (int(chunkVersion == 11)):
 
-				print("Got to DATABASE")
+			print("Got to DATABASE")
 
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				
-				variableCount = self.read_UnsignedLong4Bytes()
-				for i in range(variableCount):
-					variableValue = self.read_UnsignedLong4Bytes()
-					variableName = self.read_LengthString(4)[::-1]
-					self.otherVariables[variableName] = variableValue
-				
-				unknown = self.read_Bytes(1)
-				self.replayName = self.read_LengthString()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
-				unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			
+			variableCount = self.read_UnsignedLong4Bytes()
+			for i in range(variableCount):
+				variableValue = self.read_UnsignedLong4Bytes()
+				variableName = self.read_2ByteString(2)[::-1]
+				self.otherVariables[variableName] = variableValue
+			
+			unknown = self.read_Bytes(1)
+			self.replayName = self.read_LengthString()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
+			unknown = self.read_UnsignedLong4Bytes()
 
-			if(chunkType == "DATAINFO") and (chunkVersion == 6):
+		if(chunkType == "DATAINFO") and (chunkVersion == 6):
 
-				print("got to FATAINFO")
-				userName = self.read_LengthString()
-				self.read_UnsignedLong4Bytes()
-				self.read_UnsignedLong4Bytes()
-				faction = self.read_LengthString()
-				self.read_UnsignedLong4Bytes()
-				self.read_UnsignedLong4Bytes()
-				self.playerList.append((userName,faction))
+			print("got to DATAINFO")
+			userName = self.read_LengthString()
+			self.read_UnsignedLong4Bytes()
+			self.read_UnsignedLong4Bytes()
+			faction = self.read_LengthASCIIString()
+			self.read_UnsignedLong4Bytes()
+			self.read_UnsignedLong4Bytes()
+			self.playerList.append((userName,faction))
 
 
 		self.seek(chunkStart + chunkLength, 0)
@@ -296,13 +311,39 @@ class COH_Replay_Parser:
 		output += "otherVariables : {}\n".format(self.otherVariables)
 		output += "modName : {}\n".format(self.modName)
 		output += "mapName : {}\n".format(self.mapName)
+		output += "mapNameFull : {}\n".format(self.mapNameFull)
 		output += "mapDescription : {}\n".format(self.mapDescription)
+		output += "mapDescriptionFull : {}\n".format(self.mapDescriptionFull)
 		output += "mapFileName : {}\n".format(self.mapFileName)
 		output += "mapWidth : {}\n".format(self.mapWidth)
 		output += "mapHeight : {}\n".format(self.mapHeight)
+		output += "playerList : {}\n".format(len(self.playerList))
 		output += "playerList : {}\n".format(self.playerList)
 		return output
 
+class UCS:
+	def __init__(self) -> None:
+		self.cohPath = "C:\Program Files (x86)\Steam\steamapps\common\Company of Heroes Relaunch"
+		self.ucsPath = "C:\Program Files (x86)\Steam\steamapps\common\Company of Heroes Relaunch\CoH\Engine\Locale\English\RelicCOH.English.ucs"
+
+	def compareUCS(self, compareString):
+		try:
+			linenumber = 0
+			print(compareString[1:].strip())
+			with open(self.ucsPath, "r",encoding='utf16') as f:
+				for line in f:
+					linenumber += 1
+					print(line.strip().split('\t')[0])
+					if str(compareString[1:].strip()) == str(line.strip().split('\t')[0]):
+						print(line)
+						if len(line.split('\t')) > 1:
+							print("found match")
+							return " ".join(line.split('\t')[1:]) 	
+					line = f.readline()
+			print("linenumber : {}".format(linenumber))
+		except Exception as e:
+			logging.error(str(e))
+			logging.exception("Stack : ")
 
 
 
@@ -312,5 +353,5 @@ for handler in logging.root.handlers[:]:
 	logging.root.removeHandler(handler)
 logging.basicConfig(format='%(asctime)s (%(threadName)-10s) [%(levelname)s] %(message)s', filename= 'Errors.log',filemode = "w", level=logging.INFO)
 
-myCOHReplayParser = COH_Replay_Parser("temp.rec")
+myCOHReplayParser = COH_Replay_Parser("temp4.rec")
 print(myCOHReplayParser)
