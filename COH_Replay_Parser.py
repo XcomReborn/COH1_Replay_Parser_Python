@@ -198,7 +198,7 @@ class COH_Replay_Parser:
 
 		#get mapname and mapdescription from ucs file if they exist there
 		self.mapNameFull = UCS().compareUCS(self.mapName)
-		self.mapDescriptionFull = UCS().compareUCS(self.mapDescription)
+		#self.mapDescriptionFull = UCS().compareUCS(self.mapDescription)
 
 
 	def parseChunk(self, level):
@@ -333,12 +333,13 @@ class UCS:
 			with open(self.ucsPath, "r",encoding='utf16') as f:
 				for line in f:
 					linenumber += 1
-					print(line.strip().split('\t')[0])
-					if str(compareString[1:].strip()) == str(line.strip().split('\t')[0]):
+					print(str(linenumber) + ".  " + str(line.split()[0]))
+					firstString = str(line.split()[0])
+					if str(compareString[1:].strip()) == firstString:
 						print(line)
-						if len(line.split('\t')) > 1:
+						if len(line.split()) > 1:
 							print("found match")
-							return " ".join(line.split('\t')[1:]) 	
+							return " ".join(line.split()[1:])
 					line = f.readline()
 			print("linenumber : {}".format(linenumber))
 		except Exception as e:
