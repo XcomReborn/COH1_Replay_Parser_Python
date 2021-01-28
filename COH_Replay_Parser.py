@@ -266,23 +266,36 @@ class COH_Replay_Parser:
 
 			print("Got to DATABASE")
 
-			unknown = self.read_UnsignedLong4Bytes()
-			unknown = self.read_UnsignedLong4Bytes()
-			unknown = self.read_UnsignedLong4Bytes()
+			self.seek(16, 1)
+
+			self.randomStart = (self.read_UnsignedLong4Bytes() == 0)
 			
-			variableCount = self.read_UnsignedLong4Bytes()
-			for i in range(variableCount):
-				variableValue = self.read_UnsignedLong4Bytes()
-				variableName = self.read_2ByteString(2)[::-1]
-				self.otherVariables[variableName] = variableValue
+			COLS = self.read_UnsignedLong4Bytes()
 			
-			unknown = self.read_Bytes(1)
+			self.highResources = (self.read_UnsignedLong4Bytes() == 1)
+
+			TSSR = self.read_UnsignedLong4Bytes()
+			
+			self.VPCount = 250 * (1 << (int)(self.read_UnsignedLong4Bytes()))
+
+			self.seek(5, 1)
+
 			self.replayName = self.read_LengthString()
-			unknown = self.read_UnsignedLong4Bytes()
-			unknown = self.read_UnsignedLong4Bytes()
-			unknown = self.read_UnsignedLong4Bytes()
-			unknown = self.read_UnsignedLong4Bytes()
-			unknown = self.read_UnsignedLong4Bytes()
+
+			self.seek(8, 1)
+
+			self.VPGame = (self.read_UnsignedLong4Bytes() ==  0x603872a3)
+
+			self.seek(23 , 1)
+			self.read_LengthASCIIString()
+			self.seek(4,1)
+			self.read_LengthASCIIString()
+			self.seek(8,1)
+			if (self.read_UnsignedLong4Bytes() == 2):
+				self.read_LengthASCIIString()
+				self.read_LengthASCIIString()
+			self.read_LengthASCIIString()
+			self.matchType = self.read_LengthASCIIString()
 
 		if(chunkType == "DATAINFO") and (chunkVersion == 6):
 
@@ -304,6 +317,10 @@ class COH_Replay_Parser:
 		output += "chunkyHeaderLength : {}\n".format(self.chunkyHeaderLength)
 		output += "replayVersion : {}\n".format(self.replayVersion)
 		output += "chunkyVersion : {}\n".format(self.chunkyVersion)
+		output += "randomStart : {}\n".format(self.randomStart)
+		output += "highResources : {}\n".format(self.highResources)
+		output += "VPCount : {}\n".format(self.VPCount)
+		output += "matchType : {}\n".format(self.matchType)
 		output += "fileName : {}\n".format(self.fileName)
 		output += "localDate : {}\n".format(self.localDate)
 		output += "unknownDate : {}\n".format(self.unknownDate)
@@ -349,5 +366,5 @@ for handler in logging.root.handlers[:]:
 	logging.root.removeHandler(handler)
 logging.basicConfig(format='%(asctime)s (%(threadName)-10s) [%(levelname)s] %(message)s', filename= 'Errors.log',filemode = "w", level=logging.INFO)
 
-myCOHReplayParser = COH_Replay_Parser("temp2.rec")
+myCOHReplayParser = COH_Replay_Parser("temp5.rec")
 print(myCOHReplayParser)
