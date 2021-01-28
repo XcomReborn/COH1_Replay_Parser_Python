@@ -328,20 +328,15 @@ class UCS:
 
 	def compareUCS(self, compareString):
 		try:
-			linenumber = 0
-			print(compareString[1:].strip())
-			with open(self.ucsPath, "r",encoding='utf16') as f:
+			linenumber = 1
+			print(compareString[1:])
+			with open(self.ucsPath, "r", encoding="utf-16") as f:	
 				for line in f:
 					linenumber += 1
-					print(str(linenumber) + ".  " + str(line.encode('utf_16_be').split()[0]))
-					firstString = str(line.encode('utf_16_be').split()[0])
-					if str(compareString[1:].strip()) == firstString:
-						print(line)
-						if len(line.split()) > 1:
-							print("found match")
+					firstString = str(line.split('\t')[0])
+					if str(compareString[1:].strip()) == str(firstString):
+						if len(line.split('\t')) > 1:
 							return " ".join(line.split()[1:])
-					line = f.readline()
-			print("linenumber : {}".format(linenumber))
 		except Exception as e:
 			logging.error(str(e))
 			logging.exception("Stack : ")
@@ -354,5 +349,5 @@ for handler in logging.root.handlers[:]:
 	logging.root.removeHandler(handler)
 logging.basicConfig(format='%(asctime)s (%(threadName)-10s) [%(levelname)s] %(message)s', filename= 'Errors.log',filemode = "w", level=logging.INFO)
 
-myCOHReplayParser = COH_Replay_Parser("temp4.rec")
+myCOHReplayParser = COH_Replay_Parser("temp2.rec")
 print(myCOHReplayParser)
