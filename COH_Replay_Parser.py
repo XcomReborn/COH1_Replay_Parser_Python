@@ -10,16 +10,17 @@ class COH_Replay_Parser:
 
 
 		self.filePath = filePath
-		self.fileName = None
+
 		self.fileVersion = None
-		self.chunkyHeaderLength = None
-		self.chunkyVersion = None # 3
-		
-		self.replayVersion = None
+		self.chunkyVersion = None
+		self.randomStart = None
+		self.highResources = None
+		self.VPCount = None
+		self.matchType = None
 		self.localDate = None
 		self.unknownDate = None
 		self.replayName = None
-		self.otherVariables = {}
+		self.gameVersion = None
 		self.modName = None
 		self.mapName = None
 		self.mapNameFull = None
@@ -160,22 +161,25 @@ class COH_Replay_Parser:
 
 		#Process the file Header
 		self.fileVersion = self.read_UnsignedLong4Bytes()
+
 		cohrec = self.read_ASCIIString(stringLength= 8)
-		print("cohrec : {}".format(cohrec))
 
 		self.localDate = self.read_NULLTerminated_2ByteString()
-		#if (len(self.localDate)% 2 == 0):
-		#	self.seek(2, 1) #move extra two bytes to keep in 4 byte frame of reference at end of string
-		#print("dataIndex : {}".format(self.dataIndex))
+
 		self.seek(76,0)
 
 		firstRelicChunkyAddress = self.dataIndex
+
 		relicChunky = self.read_ASCIIString(stringLength=12)
-		print("relicChunky : {}".format(relicChunky))
+
 		unknown = self.read_UnsignedLong4Bytes()
+
 		self.chunkyVersion = self.read_UnsignedLong4Bytes() # 3
+
 		unknown = self.read_UnsignedLong4Bytes()
+
 		self.chunkyHeaderLength = self.read_UnsignedLong4Bytes()
+		
 		self.seek(-28,1) # sets file pointer back to start of relic chunky
 		self.seek(self.chunkyHeaderLength, 1) # seeks to begining of FOLDPOST
 
@@ -203,35 +207,25 @@ class COH_Replay_Parser:
 
 	def parseChunk(self, level):
 
-		print("LEVEL : {}".format(level))
-		
-		
-		print("dataIndex {} ".format(self.dataIndex))
 		chunkType = self.read_ASCIIString(stringLength= 8) # Reads FOLDFOLD, FOLDDATA, DATASDSC, DATAINFO etc
-		print("chunkType : {}".format(chunkType))
 
 		chunkVersion = self.read_UnsignedLong4Bytes()
-		print("chunkVersion : {}".format(chunkVersion))
+
 		chunkLength = self.read_UnsignedLong4Bytes()
-		print("chunkLength : {}".format(chunkLength))
+
 		chunkNameLength = self.read_UnsignedLong4Bytes()
-		print("chunkNameLength : {}".format(chunkNameLength))
-		#print("dataIndex {} ".format(self.dataIndex))
+
 		self.seek(8,1)
-		#print("dataIndex {} ".format(self.dataIndex))
+
 		chunkName = ""
 		if chunkNameLength > 0:
 			chunkName = self.read_ASCIIString(stringLength=chunkNameLength)
-			print("chunkName : {}".format(chunkName))
-
-		
-		#print("chunkVersion {}, chunkLength {}, chunkNameLength {}, chunkName {}".format(chunkVersion, chunkLength, chunkNameLength, chunkName))
 
 		chunkStart = self.dataIndex
 
 		#Here we start a recusive loop
 		if (chunkType.startswith("FOLD")):
-			print("STATS WITH FOLD")
+
 			while (self.dataIndex < (chunkStart + chunkLength )):
 				self.parseChunk(level=level+1)
 
@@ -264,8 +258,6 @@ class COH_Replay_Parser:
 
 		if(chunkType == "DATABASE") and (int(chunkVersion == 11)):
 
-			print("Got to DATABASE")
-
 			self.seek(16, 1)
 
 			self.randomStart = (self.read_UnsignedLong4Bytes() == 0)
@@ -287,10 +279,15 @@ class COH_Replay_Parser:
 			self.VPGame = (self.read_UnsignedLong4Bytes() ==  0x603872a3)
 
 			self.seek(23 , 1)
+
 			self.read_LengthASCIIString()
+
 			self.seek(4,1)
+
 			self.read_LengthASCIIString()
+
 			self.seek(8,1)
+
 			if (self.read_UnsignedLong4Bytes() == 2):
 				self.read_LengthASCIIString()
 				self.gameVersion = self.read_LengthASCIIString()
@@ -299,7 +296,6 @@ class COH_Replay_Parser:
 
 		if(chunkType == "DATAINFO") and (chunkVersion == 6):
 
-			print("got to DATAINFO")
 			userName = self.read_LengthString()
 			self.read_UnsignedLong4Bytes()
 			self.read_UnsignedLong4Bytes()
