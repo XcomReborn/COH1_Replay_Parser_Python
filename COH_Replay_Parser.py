@@ -319,7 +319,6 @@ class COH_Replay_Parser:
 		output += "highResources : {}\n".format(self.highResources)
 		output += "VPCount : {}\n".format(self.VPCount)
 		output += "matchType : {}\n".format(self.matchType)
-		output += "fileName : {}\n".format(self.fileName)
 		output += "localDate : {}\n".format(self.localDate)
 		output += "unknownDate : {}\n".format(self.unknownDate)
 		output += "replayName : {}\n".format(self.replayName)
