@@ -293,7 +293,7 @@ class COH_Replay_Parser:
 			self.seek(8,1)
 			if (self.read_UnsignedLong4Bytes() == 2):
 				self.read_LengthASCIIString()
-				self.read_LengthASCIIString()
+				self.gameVersion = self.read_LengthASCIIString()
 			self.read_LengthASCIIString()
 			self.matchType = self.read_LengthASCIIString()
 
@@ -314,8 +314,6 @@ class COH_Replay_Parser:
 	def __str__(self) -> str:
 		output = "Data:\n"
 		output += "fileVersion : {}\n".format(self.fileVersion)
-		output += "chunkyHeaderLength : {}\n".format(self.chunkyHeaderLength)
-		output += "replayVersion : {}\n".format(self.replayVersion)
 		output += "chunkyVersion : {}\n".format(self.chunkyVersion)
 		output += "randomStart : {}\n".format(self.randomStart)
 		output += "highResources : {}\n".format(self.highResources)
@@ -325,7 +323,7 @@ class COH_Replay_Parser:
 		output += "localDate : {}\n".format(self.localDate)
 		output += "unknownDate : {}\n".format(self.unknownDate)
 		output += "replayName : {}\n".format(self.replayName)
-		output += "otherVariables : {}\n".format(self.otherVariables)
+		output += "gameVersion : {}\n".format(self.gameVersion)
 		output += "modName : {}\n".format(self.modName)
 		output += "mapName : {}\n".format(self.mapName)
 		output += "mapNameFull : {}\n".format(self.mapNameFull)
@@ -346,7 +344,6 @@ class UCS:
 	def compareUCS(self, compareString):
 		try:
 			linenumber = 1
-			print(compareString[1:])
 			with open(self.ucsPath, "r", encoding="utf-16") as f:	
 				for line in f:
 					linenumber += 1
