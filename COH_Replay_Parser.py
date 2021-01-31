@@ -302,7 +302,7 @@ class COH_Replay_Parser:
 			faction = self.read_LengthASCIIString()
 			self.read_UnsignedLong4Bytes()
 			self.read_UnsignedLong4Bytes()
-			self.playerList.append((userName,faction))
+			self.playerList.append({'name':userName,'faction':faction})
 
 
 		self.seek(chunkStart + chunkLength, 0)
