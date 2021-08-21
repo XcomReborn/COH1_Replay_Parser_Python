@@ -425,3 +425,5 @@ logging.basicConfig(format='%(asctime)s (%(threadName)-10s) [%(levelname)s] %(me
 
 myCOHReplayParser = COH_Replay_Parser("EURO.rec")
 print(myCOHReplayParser)
+
+# localDate should be of the format 2021-08-19 00:00:00
