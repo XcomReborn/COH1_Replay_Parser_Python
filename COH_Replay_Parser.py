@@ -266,7 +266,8 @@ class COH_Replay_Parser:
 
 			self.seek(16, 1)
 
-			self.randomStart = (self.read_UnsignedLong4Bytes() == 0)
+			self.randomStart = True
+			self.randomStart = not (self.read_UnsignedLong4Bytes() == 0)
 			
 			COLS = self.read_UnsignedLong4Bytes()
 			
@@ -423,7 +424,13 @@ for handler in logging.root.handlers[:]:
 	logging.root.removeHandler(handler)
 logging.basicConfig(format='%(asctime)s (%(threadName)-10s) [%(levelname)s] %(message)s', filename= 'Errors.log',filemode = "w", level=logging.INFO)
 
-myCOHReplayParser = COH_Replay_Parser("EURO.rec")
+myCOHReplayParser = COH_Replay_Parser("RandomStart.rec")
+print(myCOHReplayParser)
+
+myCOHReplayParser = COH_Replay_Parser("Fixed.rec")
+print(myCOHReplayParser)
+
+myCOHReplayParser = COH_Replay_Parser("Fixed2.rec")
 print(myCOHReplayParser)
 
 # localDate should be of the format 2021-08-19 00:00:00
