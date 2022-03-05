@@ -30,6 +30,7 @@ class COH_Replay_Parser:
 		self.mapDescription = None
 		self.mapDescriptionFull = None
 		self.mapFileName = None
+		self.mapFileNameFull = None
 		self.mapWidth = None
 		self.mapHeight = None
 		self.playerList = []
@@ -243,7 +244,12 @@ class COH_Replay_Parser:
 			unknown = self.read_UnsignedLong4Bytes()
 			unknown = self.read_UnsignedLong4Bytes()
 			self.modName = self.read_LengthASCIIString() 
-			self.mapFileName = self.read_LengthASCIIString()
+			self.mapFileNameFull = self.read_LengthASCIIString()
+			# Get the filename from the end of the string after the '\' character
+			try:
+				self.mapFileName = self.mapFileNameFull.split('\\')[-1]
+			except:
+				pass 
 			unknown = self.read_UnsignedLong4Bytes()
 			unknown = self.read_UnsignedLong4Bytes()
 			unknown = self.read_UnsignedLong4Bytes()
@@ -391,6 +397,7 @@ class COH_Replay_Parser:
 		output += "mapDescription : {}\n".format(self.mapDescription)
 		output += "mapDescriptionFull : {}\n".format(self.mapDescriptionFull)
 		output += "mapFileName : {}\n".format(self.mapFileName)
+		output += "mapFileNameFull : {}\n".format(self.mapFileNameFull)
 		output += "mapWidth : {}\n".format(self.mapWidth)
 		output += "mapHeight : {}\n".format(self.mapHeight)
 		output += "playerList : {}\n".format(len(self.playerList))
@@ -431,6 +438,9 @@ myCOHReplayParser = COH_Replay_Parser("Fixed.rec")
 print(myCOHReplayParser)
 
 myCOHReplayParser = COH_Replay_Parser("Fixed2.rec")
+print(myCOHReplayParser)
+
+myCOHReplayParser = COH_Replay_Parser("temp5.rec")
 print(myCOHReplayParser)
 
 # localDate should be of the format 2021-08-19 00:00:00
