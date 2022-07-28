@@ -356,8 +356,8 @@ class COH_Replay_Parser:
         reEuro = re.compile(r"(\d\d).(\d\d).(\d\d\d\d)\s(\d\d).(\d\d)")
         match = re.match(reEuro, timeString)
         if match:
-            print("Euro String")
-            print(match.groups())
+            # print("Euro String")
+            # print(match.groups())
             try:
                 day = int(match.group(1))
                 month = int(match.group(2))
@@ -379,8 +379,8 @@ class COH_Replay_Parser:
             r"(\d{1,2}).(\d{1,2}).(\d\d\d\d)\s(\d{1,2}).(\d{1,2}).*?(\w)M")
         match = re.match(reUS, timeString)
         if match:
-            print("US String")
-            print(match.groups())
+            # print("US String")
+            # print(match.groups())
             try:
                 day = int(match.group(2))
                 month = int(match.group(1))
@@ -407,8 +407,8 @@ class COH_Replay_Parser:
             (" ".join(
                 (str(timeString).encode("ascii", "ignore").decode()).split())))
         if match:
-            print("Asian String")
-            print(match.groups())
+            # print("Asian String")
+            # print(match.groups())
             try:
                 day = int(match.group(3))
                 month = int(match.group(2))
@@ -454,8 +454,10 @@ class COH_Replay_Parser:
 
 class UCS:
     def __init__(self) -> None:
+        # This location is here for reference
         self.cohPath = ("C:/Program Files (x86)/Steam/steamapps/common/"
                         "Company of Heroes Relaunch")
+        # Ensure this location points to the local RelicCOH.English.ucs file
         self.ucsPath = ("C:/Program Files (x86)/Steam/steamapps/common/"
                         "Company of Heroes Relaunch/CoH/Engine/Locale/English/"
                         "RelicCOH.English.ucs")
@@ -498,5 +500,3 @@ if __name__ == "__main__":
         if p.file_path.exists():
             myCOHReplayParser = COH_Replay_Parser(p.file_path)
             print(myCOHReplayParser)
-
-# localDate should be of the format 2021-08-19 00:00:00
