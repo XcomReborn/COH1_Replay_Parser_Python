@@ -26,3 +26,4 @@ Version v301.44802 - Relic Chunky Version 3.
 * playerList          # [(steamName, factionName)]. 
 
 
+Usage : COH_Replay_Parser.py < Replay File Path >
